@@ -19,13 +19,10 @@ namespace Grayscale {
         /// </list>
         /// </summary>
         /// <example>
-        /// Apply grayscale with default weights:
+        /// Apply grayscale:
         /// <code>
         /// BuiltinEffects.Grayscale.Apply(sprite);
-        /// </code>
-        /// Apply grayscale using only the red channel:
-        /// <code>
-        /// BuiltinEffects.Grayscale.Apply(sprite, 1f, 0f, 0f);
+        /// BuiltinEffects.Grayscale.Apply(sprite, 1f, 0f, 0f); // using only the red channel
         /// </code>
         /// </example>
         public static readonly Effect Grayscale = new Effect(
@@ -39,7 +36,7 @@ namespace Grayscale {
         /// Inverts the colors of the image.
         /// </summary>
         /// <example>
-        /// Apply the negative effect:
+        /// Apply negative:
         /// <code>
         /// BuiltinEffects.Negative.Apply(sprite);
         /// </code>
@@ -57,9 +54,10 @@ namespace Grayscale {
         /// </list>
         /// </summary>
         /// <example>
-        /// Apply blur with a radius of 20:
+        /// Apply blur:
         /// <code>
-        /// BuiltinEffects.Blur.Apply(sprite, 20);
+        /// BuiltinEffects.Blur.Apply(sprite);
+        /// BuiltinEffects.Blur.Apply(sprite, 20); // with a radius of 20
         /// </code>
         /// </example>
         public static readonly Effect Blur = new Effect("com.kd3n1z.grayscale/Blur", new EffectParameter(ParameterType.Int, "_BlurRadius", 10));
@@ -75,9 +73,10 @@ namespace Grayscale {
         /// </list>
         /// </summary>
         /// <example>
-        /// Apply pixelation with a pixel size of 20:
+        /// Apply pixelation:
         /// <code>
-        /// BuiltinEffects.Pixelate.Apply(sprite, 20);
+        /// BuiltinEffects.Pixelate.Apply(sprite);
+        /// BuiltinEffects.Pixelate.Apply(sprite, 20); // with a pixel size of 20
         /// </code>
         /// </example>
         public static readonly Effect Pixelate = new Effect("com.kd3n1z.grayscale/Pixelate", new EffectParameter(ParameterType.Int, "_PixelSize", 10));

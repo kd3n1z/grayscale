@@ -25,7 +25,7 @@ Converts the image to grayscale.
 
 ```csharp
 BuiltinEffects.Grayscale.Apply(sprite);
-BuiltinEffects.Grayscale.Apply(sprite, 1, 0, 0); // Use only the red channel
+BuiltinEffects.Grayscale.Apply(sprite, 1, 0, 0); // using only the red channel
 ```
 
 ### Negative
@@ -42,7 +42,7 @@ BuiltinEffects.Negative.Apply(sprite);
 
 Applies blur to the image.
 
-#### Parameters:
+#### Parameters
 
 1. **\_BlurRadius**: Type: `int`, Default: `10`
 
@@ -50,7 +50,22 @@ Applies blur to the image.
 
 ```csharp
 BuiltinEffects.Blur.Apply(sprite);
-BuiltinEffects.Blur.Apply(sprite, 20); // Apply with a radius of 20
+BuiltinEffects.Blur.Apply(sprite, 20); // with a radius of 20
+```
+
+### Pixelate
+
+Applies pixelation to the image.
+
+#### Parameters
+
+1. **\_PixelSize**: Type: `int`, Default: `10`
+
+#### Example Usage
+
+```csharp
+BuiltinEffects.Pixelate.Apply(sprite);
+BuiltinEffects.Pixelate.Apply(sprite, 20); // with a pixel size of 20
 ```
 
 ## License
