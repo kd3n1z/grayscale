@@ -17,36 +17,60 @@ namespace Grayscale {
             return Sprite.Create(result, new Rect(0, 0, result.width, result.height), sprite.pivot);
         }
 
-        public Texture2D Apply(Texture2D input, params object[] parameters) {
-            object[] parameterValues = new object[_effectParameters.Length];
-            int[] parameterHashCodes = new int[_effectParameters.Length];
+        public Texture2D Apply(Texture2D texture, params object[] parameters) {
+            Hash128 hash = GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues);
 
-            for (int i = 0; i < parameters.Length; i++) {
+            if (_cache.TryGetValue(hash, out Texture2D result)) {
+                return result;
+            }
+
+            Texture2D resultTexture = Calculate(texture, parameterValues);
+
+            _cache.Add(hash, resultTexture);
+
+            return resultTexture;
+        }
+
+        public void Precache(Sprite sprite, params object[] parameters) => Precache(sprite.texture, parameters);
+
+        public void Precache(Texture2D texture, params object[] parameters) {
+            Hash128 hash = GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues);
+
+            if (_cache.ContainsKey(hash)) {
+                return;
+            }
+
+            _cache.Add(hash, Calculate(texture, parameterValues));
+        }
+
+        private Hash128 GetHashAndDefaultParameters(Texture2D texture, IReadOnlyList<object> parameters, out object[] parameterValues) {
+            parameterValues = GetDefaultParameters(parameters, out int[] parametersHashCodes);
+
+            Hash128 hash = texture.imageContentsHash;
+            hash.Append(parametersHashCodes);
+
+            return hash;
+        }
+
+        private object[] GetDefaultParameters(IReadOnlyList<object> parameters, out int[] parameterHashCodes) {
+            object[] parameterValues = new object[_effectParameters.Length];
+            parameterHashCodes = new int[_effectParameters.Length];
+
+            for (int i = 0; i < parameters.Count; i++) {
                 object value = parameters[i];
 
                 parameterValues[i] = value;
                 parameterHashCodes[i] = value.GetHashCode();
             }
 
-            for (int i = parameters.Length; i < _effectParameters.Length; i++) {
+            for (int i = parameters.Count; i < _effectParameters.Length; i++) {
                 object value = _effectParameters[i].DefaultValue;
 
                 parameterValues[i] = value;
                 parameterHashCodes[i] = value.GetHashCode();
             }
 
-            Hash128 hash = input.imageContentsHash;
-            hash.Append(parameterHashCodes);
-
-            if (_cache.TryGetValue(hash, out Texture2D result)) {
-                return result;
-            }
-
-            Texture2D resultTexture = Calculate(input, parameterValues);
-
-            _cache.Add(hash, resultTexture);
-
-            return resultTexture;
+            return parameterValues;
         }
 
         private Texture2D Calculate(Texture2D input, object[] values) {
