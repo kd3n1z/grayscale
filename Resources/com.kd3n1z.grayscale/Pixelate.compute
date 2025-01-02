@@ -1,0 +1,12 @@
+#pragma kernel CSMain
+
+Texture2D _InputTexture;
+RWTexture2D<float4> _OutputTexture;
+
+int _PixelSize;
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    _OutputTexture[id.xy] = _InputTexture[id.xy / _PixelSize * _PixelSize];
+}

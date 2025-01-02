@@ -57,11 +57,29 @@ namespace Grayscale {
         /// </list>
         /// </summary>
         /// <example>
-        /// Apply a blur with a radius of 20:
+        /// Apply blur with a radius of 20:
         /// <code>
         /// BuiltinEffects.Blur.Apply(sprite, 20);
         /// </code>
         /// </example>
         public static readonly Effect Blur = new Effect("com.kd3n1z.grayscale/Blur", new EffectParameter(ParameterType.Int, "_BlurRadius", 10));
+
+        /// <summary>
+        /// Applies pixelation to the image.
+        /// Parameters:
+        /// <list type="number">
+        ///   <item>
+        ///     <term><c>_PixelSize</c></term>
+        ///     <description> Type: <see cref="int">int</see>, Default: <c>10</c></description>
+        ///   </item>
+        /// </list>
+        /// </summary>
+        /// <example>
+        /// Apply pixelation with a pixel size of 20:
+        /// <code>
+        /// BuiltinEffects.Pixelate.Apply(sprite, 20);
+        /// </code>
+        /// </example>
+        public static readonly Effect Pixelate = new Effect("com.kd3n1z.grayscale/Pixelate", new EffectParameter(ParameterType.Int, "_PixelSize", 10));
     }
 }
