@@ -126,6 +126,10 @@ namespace Grayscale {
         public Effect(ComputeShader shader, params EffectParameter[] effectParameters) {
             _shader = shader;
             _effectParameters = effectParameters;
+
+            if (shader == null || !shader.IsSupported(0)) {
+                Debug.LogError("Shader is null or is not supported");
+            }
         }
     }
 }
