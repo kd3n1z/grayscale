@@ -10,26 +10,28 @@ namespace Grayscale {
 
         private readonly ComputeShader _shader;
         private readonly Dictionary<Hash128, Texture2D> _cache = new Dictionary<Hash128, Texture2D>();
+        private readonly Dictionary<Hash128, Sprite> _spritesCache = new Dictionary<Hash128, Sprite>();
 
         public Sprite Apply(Sprite sprite, params object[] parameters) {
-            Texture2D result = Apply(sprite.texture, parameters);
+            Texture2D texture = sprite.texture;
 
-            return Sprite.Create(result, new Rect(0, 0, result.width, result.height), sprite.pivot);
-        }
-
-        public Texture2D Apply(Texture2D texture, params object[] parameters) {
             Hash128 hash = GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues);
+            Hash128 spriteHash = hash;
+            spriteHash.Append(sprite.pivot.GetHashCode());
 
-            if (_cache.TryGetValue(hash, out Texture2D result)) {
-                return result;
+            if (_spritesCache.TryGetValue(spriteHash, out Sprite cachedResult)) {
+                return cachedResult;
             }
 
-            Texture2D resultTexture = Calculate(texture, parameterValues);
+            Sprite resultSprite = Sprite.Create(GetCachedOrCalculate(hash, texture, parameterValues), sprite.rect, sprite.pivot);
 
-            _cache.Add(hash, resultTexture);
+            _spritesCache.Add(spriteHash, resultSprite);
 
-            return resultTexture;
+            return resultSprite;
         }
+
+        public Texture2D Apply(Texture2D texture, params object[] parameters) =>
+            GetCachedOrCalculate(GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues), texture, parameterValues);
 
         public void Precache(Sprite sprite, params object[] parameters) => Precache(sprite.texture, parameters);
 
@@ -41,6 +43,18 @@ namespace Grayscale {
             }
 
             _cache.Add(hash, Calculate(texture, parameterValues));
+        }
+
+        private Texture2D GetCachedOrCalculate(Hash128 hash, Texture2D texture, object[] parameterValues) {
+            if (_cache.TryGetValue(hash, out Texture2D result)) {
+                return result;
+            }
+
+            Texture2D resultTexture = Calculate(texture, parameterValues);
+
+            _cache.Add(hash, resultTexture);
+
+            return resultTexture;
         }
 
         private Hash128 GetHashAndDefaultParameters(Texture2D texture, IReadOnlyList<object> parameters, out object[] parameterValues) {
