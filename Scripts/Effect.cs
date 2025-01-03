@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Grayscale {
@@ -43,6 +44,14 @@ namespace Grayscale {
             }
 
             _cache.Add(hash, Calculate(texture, parameterValues));
+        }
+
+        // ARGB32: 4 bytes per pixel
+        public long GetCacheSize() => _cache.Values.Sum(e => e.width * e.height * 4);
+
+        public void ClearCache() {
+            _cache.Clear();
+            _spritesCache.Clear();
         }
 
         private Texture2D GetCachedOrCalculate(Hash128 hash, Texture2D texture, object[] parameterValues) {
