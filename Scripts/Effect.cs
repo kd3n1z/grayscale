@@ -34,7 +34,8 @@ namespace Grayscale {
         public Texture2D Apply(Texture2D texture, params object[] parameters) =>
             GetCachedOrCalculate(GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues), texture, parameterValues);
 
-        public void Precache(Sprite sprite, params object[] parameters) => Precache(sprite.texture, parameters);
+        // TODO: implement normal sprite caching
+        public void Precache(Sprite sprite, params object[] parameters) => Apply(sprite, parameters);
 
         public void Precache(Texture2D texture, params object[] parameters) {
             Hash128 hash = GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues);
