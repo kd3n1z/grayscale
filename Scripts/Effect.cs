@@ -10,45 +10,36 @@ namespace Grayscale {
         private static readonly int TextureSizeShaderProperty = Shader.PropertyToID("_TextureSize");
 
         private readonly ComputeShader _shader;
-        private readonly Dictionary<Hash128, Texture2D> _cache = new Dictionary<Hash128, Texture2D>();
-        private readonly Dictionary<Hash128, Sprite> _spritesCache = new Dictionary<Hash128, Sprite>();
+        private readonly Dictionary<KeyValuePair<Texture2D, Hash128>, Texture2D> _cache = new Dictionary<KeyValuePair<Texture2D, Hash128>, Texture2D>();
+        private readonly Dictionary<KeyValuePair<Sprite, Hash128>, Sprite> _spritesCache = new Dictionary<KeyValuePair<Sprite, Hash128>, Sprite>();
 
         public Sprite Apply(Sprite sprite, params object[] parameters) {
             Texture2D texture = sprite.texture;
 
-            Hash128 hash = GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues);
-            Hash128 spriteHash = hash;
-            spriteHash.Append(sprite.pivot.GetHashCode());
+            Hash128 hash = GetHashAndDefaultParameters(parameters, out object[] parameterValues);
 
-            if (_spritesCache.TryGetValue(spriteHash, out Sprite cachedResult)) {
+            KeyValuePair<Sprite, Hash128> kvp = new KeyValuePair<Sprite, Hash128>(sprite, hash);
+
+            if (_spritesCache.TryGetValue(kvp, out Sprite cachedResult)) {
                 return cachedResult;
             }
 
             Sprite resultSprite = Sprite.Create(GetCachedOrCalculate(hash, texture, parameterValues), sprite.rect, sprite.pivot);
 
-            _spritesCache.Add(spriteHash, resultSprite);
+            _spritesCache.Add(kvp, resultSprite);
 
             return resultSprite;
         }
 
         public Texture2D Apply(Texture2D texture, params object[] parameters) =>
-            GetCachedOrCalculate(GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues), texture, parameterValues);
+            GetCachedOrCalculate(GetHashAndDefaultParameters(parameters, out object[] parameterValues), texture, parameterValues);
 
-        // TODO: implement normal sprite caching
         public void Precache(Sprite sprite, params object[] parameters) => Apply(sprite, parameters);
 
-        public void Precache(Texture2D texture, params object[] parameters) {
-            Hash128 hash = GetHashAndDefaultParameters(texture, parameters, out object[] parameterValues);
-
-            if (_cache.ContainsKey(hash)) {
-                return;
-            }
-
-            _cache.Add(hash, Calculate(texture, parameterValues));
-        }
+        public void Precache(Texture2D texture, params object[] parameters) => Apply(texture, parameters);
 
         // ARGB32: 4 bytes per pixel
-        public long GetCacheSize() => _cache.Values.Sum(e => e.width * e.height * 4);
+        public long GetCacheSize() => _cache.Values.Sum(e => e.width * e.height) * 4;
 
         public void ClearCache() {
             _cache.Clear();
@@ -56,22 +47,23 @@ namespace Grayscale {
         }
 
         private Texture2D GetCachedOrCalculate(Hash128 hash, Texture2D texture, object[] parameterValues) {
-            if (_cache.TryGetValue(hash, out Texture2D result)) {
+            KeyValuePair<Texture2D, Hash128> kvp = new KeyValuePair<Texture2D, Hash128>(texture, hash);
+
+            if (_cache.TryGetValue(kvp, out Texture2D result)) {
                 return result;
             }
 
             Texture2D resultTexture = Calculate(texture, parameterValues);
 
-            _cache.Add(hash, resultTexture);
+            _cache.Add(kvp, resultTexture);
 
             return resultTexture;
         }
 
-        private Hash128 GetHashAndDefaultParameters(Texture2D texture, IReadOnlyList<object> parameters, out object[] parameterValues) {
+        private Hash128 GetHashAndDefaultParameters(IReadOnlyList<object> parameters, out object[] parameterValues) {
             parameterValues = GetDefaultParameters(parameters, out int[] parametersHashCodes);
 
-            Hash128 hash = texture.imageContentsHash;
-            hash.Append(parametersHashCodes);
+            Hash128 hash = Hash128.Compute(parametersHashCodes);
 
             return hash;
         }
