@@ -24,7 +24,7 @@ namespace Grayscale {
                 return cachedResult;
             }
 
-            Sprite resultSprite = Sprite.Create(GetCachedOrCalculate(hash, texture, parameterValues), sprite.rect, sprite.pivot);
+            Sprite resultSprite = Sprite.Create(GetCachedOrCalculate(hash, texture, parameterValues), sprite.rect, sprite.pivot, sprite.pixelsPerUnit, 0, SpriteMeshType.FullRect);
 
             _spritesCache.Add(kvp, resultSprite);
 
@@ -124,13 +124,8 @@ namespace Grayscale {
 
             _shader.Dispatch(0, Mathf.CeilToInt(width / 8.0f), Mathf.CeilToInt(height / 8.0f), 1);
 
-            RenderTexture.active = renderTexture;
             Texture2D resultTexture = new Texture2D(width, height, TextureFormat.ARGB32, false);
-            resultTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            resultTexture.Apply();
-
-            RenderTexture.active = null;
-            renderTexture.Release();
+            Graphics.CopyTexture(renderTexture, resultTexture);
 
             return resultTexture;
         }
