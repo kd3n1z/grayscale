@@ -38,7 +38,7 @@ namespace Grayscale {
 
         public void Precache(Texture2D texture, params object[] parameters) => Apply(texture, parameters);
 
-        // ARGB32: 4 bytes per pixel
+        // BGRA32: 4 bytes per pixel
         public long GetCacheSize() => _cache.Values.Sum(e => e.width * e.height) * 4;
 
         public void ClearCache() {
@@ -93,7 +93,7 @@ namespace Grayscale {
             int width = input.width;
             int height = input.height;
 
-            RenderTexture renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) {
+            RenderTexture renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.BGRA32, RenderTextureReadWrite.Linear) {
                 enableRandomWrite = true
             };
 
@@ -124,7 +124,7 @@ namespace Grayscale {
 
             _shader.Dispatch(0, Mathf.CeilToInt(width / 8.0f), Mathf.CeilToInt(height / 8.0f), 1);
 
-            Texture2D resultTexture = new Texture2D(width, height, TextureFormat.ARGB32, false, true);
+            Texture2D resultTexture = new Texture2D(width, height, TextureFormat.BGRA32, false, true);
             Graphics.CopyTexture(renderTexture, resultTexture);
 
             return resultTexture;
