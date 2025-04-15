@@ -93,7 +93,7 @@ namespace Grayscale {
             int width = input.width;
             int height = input.height;
 
-            RenderTexture renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32) {
+            RenderTexture renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) {
                 enableRandomWrite = true
             };
 
@@ -124,7 +124,7 @@ namespace Grayscale {
 
             _shader.Dispatch(0, Mathf.CeilToInt(width / 8.0f), Mathf.CeilToInt(height / 8.0f), 1);
 
-            Texture2D resultTexture = new Texture2D(width, height, TextureFormat.ARGB32, false);
+            Texture2D resultTexture = new Texture2D(width, height, TextureFormat.ARGB32, false, true);
             Graphics.CopyTexture(renderTexture, resultTexture);
 
             return resultTexture;
