@@ -5,6 +5,20 @@ using UnityEngine;
 
 namespace Grayscale {
     public class Effect {
+#if UNITY_EDITOR_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS || UNITY_STANDALONE_OSX
+        // BGRA8Unorm
+        // https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+        private const RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.BGRA32;
+        private const RenderTextureReadWrite RENDER_TEXTURE_READ_WRITE = RenderTextureReadWrite.Linear;
+        private const TextureFormat TEXTURE_FORMAT = TextureFormat.BGRA32;
+        private const bool TEXTURE_LINEAR = true;
+#else
+        private const RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.ARGB32;
+        private const RenderTextureReadWrite RENDER_TEXTURE_READ_WRITE = RenderTextureReadWrite.Linear;
+        private const TextureFormat TEXTURE_FORMAT = TextureFormat.RGBA32;
+        private const bool TEXTURE_LINEAR = true;
+#endif
+
         private static readonly int InputTextureShaderProperty = Shader.PropertyToID("_InputTexture");
         private static readonly int OutputTextureShaderProperty = Shader.PropertyToID("_OutputTexture");
         private static readonly int TextureSizeShaderProperty = Shader.PropertyToID("_TextureSize");
@@ -93,7 +107,7 @@ namespace Grayscale {
             int width = input.width;
             int height = input.height;
 
-            RenderTexture renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.BGRA32, RenderTextureReadWrite.Linear) {
+            RenderTexture renderTexture = new RenderTexture(width, height, 0, RENDER_TEXTURE_FORMAT, RENDER_TEXTURE_READ_WRITE) {
                 enableRandomWrite = true
             };
 
@@ -124,7 +138,7 @@ namespace Grayscale {
 
             _shader.Dispatch(0, Mathf.CeilToInt(width / 8.0f), Mathf.CeilToInt(height / 8.0f), 1);
 
-            Texture2D resultTexture = new Texture2D(width, height, TextureFormat.BGRA32, false, true);
+            Texture2D resultTexture = new Texture2D(width, height, TEXTURE_FORMAT, false, TEXTURE_LINEAR);
             Graphics.CopyTexture(renderTexture, resultTexture);
 
             return resultTexture;
