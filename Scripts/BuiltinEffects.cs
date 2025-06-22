@@ -63,6 +63,34 @@ namespace Grayscale {
         public static readonly Effect BoxBlur = new Effect("com.kd3n1z.grayscale/BoxBlur", new EffectParameter(ParameterType.Int, "_BlurRadius", 10));
 
         /// <summary>
+        /// Applies Gaussian blur to the image.
+        /// Parameters:
+        /// <list type="number">
+        ///   <item>
+        ///     <term><c>_BlurRadius</c></term>
+        ///     <description> Type: <see cref="int">int</see>, Default: <c>5</c></description>
+        ///   </item>
+        ///   <item>
+        ///     <term><c>_Sigma</c></term>
+        ///     <description> Type: <see cref="float">float</see>, Default: <c>3.0</c></description>
+        ///   </item>
+        /// </list>
+        /// </summary>
+        /// <example>
+        /// Apply blur:
+        /// <code>
+        /// BuiltinEffects.GaussianBlur.Apply(sprite);
+        /// BuiltinEffects.GaussianBlur.Apply(sprite, 10); // with a radius of 10
+        /// BuiltinEffects.GaussianBlur.Apply(sprite, 10, 4.5f); // with a radius of 10 and sigma 4.5
+        /// </code>
+        /// </example>
+        public static readonly Effect GaussianBlur = new Effect(
+            "com.kd3n1z.grayscale/GaussianBlur",
+            new EffectParameter(ParameterType.Int, "_BlurRadius", 5),
+            new EffectParameter(ParameterType.Float, "_Sigma", 3f)
+        );
+
+        /// <summary>
         /// Applies pixelation to the image.
         /// Parameters:
         /// <list type="number">
