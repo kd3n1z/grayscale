@@ -4,6 +4,20 @@ using UnityEngine.Rendering;
 
 namespace Grayscale {
     public class Effect {
+#if UNITY_EDITOR_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS || UNITY_STANDALONE_OSX
+        // BGRA8Unorm
+        // https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+        private const RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.BGRA32;
+        private const RenderTextureReadWrite RENDER_TEXTURE_READ_WRITE = RenderTextureReadWrite.Linear;
+        private const TextureFormat TEXTURE_FORMAT = TextureFormat.BGRA32;
+        private const bool TEXTURE_LINEAR = true;
+#else
+        private const RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.ARGB32;
+        private const RenderTextureReadWrite RENDER_TEXTURE_READ_WRITE = RenderTextureReadWrite.Linear;
+        private const TextureFormat TEXTURE_FORMAT = TextureFormat.RGBA32;
+        private const bool TEXTURE_LINEAR = true;
+#endif
+
         private static readonly bool CopySupported = (SystemInfo.copyTextureSupport & CopyTextureSupport.RTToTexture) != 0;
 
         private readonly Material _material;
@@ -75,11 +89,11 @@ namespace Grayscale {
                 }
             }
 
-            RenderTexture rt = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
+            RenderTexture rt = RenderTexture.GetTemporary(width, height, 0, RENDER_TEXTURE_FORMAT, RENDER_TEXTURE_READ_WRITE);
             Graphics.Blit(input, rt, _material);
 
             // copy from rt to result
-            Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, false);
+            Texture2D result = new Texture2D(width, height, TEXTURE_FORMAT, false, TEXTURE_LINEAR);
 
             if (CopySupported) {
                 Graphics.CopyTexture(rt, result);
