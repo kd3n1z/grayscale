@@ -1,117 +1,62 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Grayscale {
     public class Effect {
-#if UNITY_EDITOR_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS || UNITY_STANDALONE_OSX
-        // BGRA8Unorm
-        // https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
-        private const RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.BGRA32;
-        private const RenderTextureReadWrite RENDER_TEXTURE_READ_WRITE = RenderTextureReadWrite.Linear;
-        private const TextureFormat TEXTURE_FORMAT = TextureFormat.BGRA32;
-        private const bool TEXTURE_LINEAR = true;
-#else
-        private const RenderTextureFormat RENDER_TEXTURE_FORMAT = RenderTextureFormat.ARGB32;
-        private const RenderTextureReadWrite RENDER_TEXTURE_READ_WRITE = RenderTextureReadWrite.Linear;
-        private const TextureFormat TEXTURE_FORMAT = TextureFormat.RGBA32;
-        private const bool TEXTURE_LINEAR = true;
-#endif
+        private static readonly bool CopySupported = (SystemInfo.copyTextureSupport & CopyTextureSupport.RTToTexture) != 0;
 
-        private static readonly int InputTextureShaderProperty = Shader.PropertyToID("_InputTexture");
-        private static readonly int OutputTextureShaderProperty = Shader.PropertyToID("_OutputTexture");
-        private static readonly int TextureSizeShaderProperty = Shader.PropertyToID("_TextureSize");
+        private readonly Material _material;
+        private readonly EffectParameter[] _effectParameters;
 
-        private readonly ComputeShader _shader;
-        private readonly Dictionary<KeyValuePair<Texture2D, Hash128>, Texture2D> _cache = new Dictionary<KeyValuePair<Texture2D, Hash128>, Texture2D>();
-        private readonly Dictionary<KeyValuePair<Sprite, Hash128>, Sprite> _spritesCache = new Dictionary<KeyValuePair<Sprite, Hash128>, Sprite>();
+        private readonly CacheStorage<Texture2D> _textureCache = new CacheStorage<Texture2D>();
+        private readonly CacheStorage<Sprite> _spriteCache = new CacheStorage<Sprite>();
 
-        public Sprite Apply(Sprite sprite, params object[] parameters) {
-            Texture2D texture = sprite.texture;
-
-            Hash128 hash = GetHashAndDefaultParameters(parameters, out object[] parameterValues);
-
-            KeyValuePair<Sprite, Hash128> kvp = new KeyValuePair<Sprite, Hash128>(sprite, hash);
-
-            if (_spritesCache.TryGetValue(kvp, out Sprite cachedResult)) {
-                return cachedResult;
-            }
-
-            Sprite resultSprite = Sprite.Create(GetCachedOrCalculate(hash, texture, parameterValues), sprite.rect, sprite.pivot, sprite.pixelsPerUnit, 0, SpriteMeshType.FullRect);
-
-            _spritesCache.Add(kvp, resultSprite);
-
-            return resultSprite;
+        public Effect(string shaderResourcePath, params EffectParameter[] effectParameters) : this(Resources.Load<Shader>(shaderResourcePath),
+            effectParameters) {
         }
 
-        public Texture2D Apply(Texture2D texture, params object[] parameters) =>
-            GetCachedOrCalculate(GetHashAndDefaultParameters(parameters, out object[] parameterValues), texture, parameterValues);
-
-        public void Precache(Sprite sprite, params object[] parameters) => Apply(sprite, parameters);
-
-        public void Precache(Texture2D texture, params object[] parameters) => Apply(texture, parameters);
-
-        // BGRA32: 4 bytes per pixel
-        public long GetCacheSize() => _cache.Values.Sum(e => e.width * e.height) * 4;
-
-        public void ClearCache() {
-            _cache.Clear();
-            _spritesCache.Clear();
+        public Effect(Shader shader, params EffectParameter[] effectParameters) {
+            _material = new Material(shader);
+            _effectParameters = effectParameters;
         }
 
-        private Texture2D GetCachedOrCalculate(Hash128 hash, Texture2D texture, object[] parameterValues) {
-            KeyValuePair<Texture2D, Hash128> kvp = new KeyValuePair<Texture2D, Hash128>(texture, hash);
+        public Cached<Texture2D> ApplyCached(Texture2D input, params object[] parameters) {
+            parameters = Helper.GetDefaultParameters(_effectParameters, parameters, out Hash128 hash);
+            hash.Append(input.GetHashCode());
 
-            if (_cache.TryGetValue(kvp, out Texture2D result)) {
-                return result;
-            }
+            return _textureCache.TryGet(hash, out Cached<Texture2D> result) ? result : _textureCache.Set(hash, Calculate(input, parameters));
 
-            Texture2D resultTexture = Calculate(texture, parameterValues);
-
-            _cache.Add(kvp, resultTexture);
-
-            return resultTexture;
         }
 
-        private Hash128 GetHashAndDefaultParameters(IReadOnlyList<object> parameters, out object[] parameterValues) {
-            parameterValues = GetDefaultParameters(parameters, out int[] parametersHashCodes);
+        public Texture2D Apply(Texture2D input, params object[] parameters) {
+            parameters = Helper.GetDefaultParameters(_effectParameters, parameters, out Hash128 hash);
+            hash.Append(input.GetHashCode());
 
-            Hash128 hash = Hash128.Compute(parametersHashCodes);
-
-            return hash;
+            return _textureCache.TryGet(hash, out Cached<Texture2D> result) ? result : Calculate(input, parameters);
         }
 
-        private object[] GetDefaultParameters(IReadOnlyList<object> parameters, out int[] parameterHashCodes) {
-            object[] parameterValues = new object[_effectParameters.Length];
-            parameterHashCodes = new int[_effectParameters.Length];
+        public Cached<Sprite> ApplyCached(Sprite input, params object[] parameters) {
+            parameters = Helper.GetDefaultParameters(_effectParameters, parameters, out Hash128 hash);
+            hash.Append(input.GetHashCode());
 
-            for (int i = 0; i < parameters.Count; i++) {
-                object value = parameters[i];
+            return _spriteCache.TryGet(hash, out Cached<Sprite> result) ? result : _spriteCache.Set(hash, Calculate(input, parameters));
 
-                parameterValues[i] = value;
-                parameterHashCodes[i] = value.GetHashCode();
-            }
-
-            for (int i = parameters.Count; i < _effectParameters.Length; i++) {
-                object value = _effectParameters[i].DefaultValue;
-
-                parameterValues[i] = value;
-                parameterHashCodes[i] = value.GetHashCode();
-            }
-
-            return parameterValues;
         }
+
+        public Sprite Apply(Sprite input, params object[] parameters) {
+            parameters = Helper.GetDefaultParameters(_effectParameters, parameters, out Hash128 hash);
+            hash.Append(input.GetHashCode());
+
+            return _spriteCache.TryGet(hash, out Cached<Sprite> result) ? result : Calculate(input, parameters);
+        }
+
+        private Sprite Calculate(Sprite input, object[] values) =>
+            Sprite.Create(Calculate(input.texture, values), input.rect, input.pivot, input.pixelsPerUnit, 0, SpriteMeshType.FullRect);
 
         private Texture2D Calculate(Texture2D input, object[] values) {
             int width = input.width;
             int height = input.height;
-
-            RenderTexture renderTexture = new RenderTexture(width, height, 0, RENDER_TEXTURE_FORMAT, RENDER_TEXTURE_READ_WRITE) {
-                enableRandomWrite = true
-            };
-
-            renderTexture.Create();
 
             for (int i = 0; i < values.Length; i++) {
                 EffectParameter parameter = _effectParameters[i];
@@ -119,42 +64,36 @@ namespace Grayscale {
 
                 switch (parameter.ParameterType) {
                     case ParameterType.Int:
-                        _shader.SetInt(parameter.Id, Convert.ToInt32(value));
+                        _material.SetInt(parameter.Id, Convert.ToInt32(value));
                         break;
                     case ParameterType.Float:
-                        _shader.SetFloat(parameter.Id, Convert.ToSingle(value));
-                        break;
-                    case ParameterType.Bool:
-                        _shader.SetBool(parameter.Id, Convert.ToBoolean(value));
+                        Debug.Log(value);
+                        _material.SetFloat(parameter.Id, Convert.ToSingle(value));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
 
-            _shader.SetInts(TextureSizeShaderProperty, width, height);
-            _shader.SetTexture(0, InputTextureShaderProperty, input);
-            _shader.SetTexture(0, OutputTextureShaderProperty, renderTexture);
+            RenderTexture rt = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
+            Graphics.Blit(input, rt, _material);
 
-            _shader.Dispatch(0, Mathf.CeilToInt(width / 8.0f), Mathf.CeilToInt(height / 8.0f), 1);
+            // copy from rt to result
+            Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, false);
 
-            Texture2D resultTexture = new Texture2D(width, height, TEXTURE_FORMAT, false, TEXTURE_LINEAR);
-            Graphics.CopyTexture(renderTexture, resultTexture);
-
-            return resultTexture;
-        }
-
-        private readonly EffectParameter[] _effectParameters;
-
-        public Effect(string shaderResourcePath, params EffectParameter[] effectParameters) : this(Resources.Load<ComputeShader>(shaderResourcePath), effectParameters) { }
-
-        public Effect(ComputeShader shader, params EffectParameter[] effectParameters) {
-            _shader = shader;
-            _effectParameters = effectParameters;
-
-            if (shader == null || !shader.IsSupported(0)) {
-                Debug.LogError("Shader is null or is not supported");
+            if (CopySupported) {
+                Graphics.CopyTexture(rt, result);
             }
+            else {
+                RenderTexture.active = rt;
+                result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                result.Apply();
+                RenderTexture.active = null;
+            }
+
+            RenderTexture.ReleaseTemporary(rt);
+
+            return result;
         }
     }
 }

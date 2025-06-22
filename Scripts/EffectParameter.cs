@@ -15,7 +15,6 @@ namespace Grayscale {
 
     public enum ParameterType {
         Int,
-        Float,
-        Bool
+        Float
     }
 }
