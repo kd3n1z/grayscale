@@ -38,9 +38,9 @@ Inverts the colors of the image.
 BuiltinEffects.Negative.Apply(sprite);
 ```
 
-### Blur
+### BoxBlur
 
-Applies blur to the image.
+Applies box blur to the image.
 
 #### Parameters
 
