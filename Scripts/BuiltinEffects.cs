@@ -44,7 +44,7 @@ namespace Grayscale {
         public static readonly Effect Negative = new Effect("com.kd3n1z.grayscale/Negative");
 
         /// <summary>
-        /// Applies blur to the image.
+        /// Applies box blur to the image.
         /// Parameters:
         /// <list type="number">
         ///   <item>
@@ -56,11 +56,11 @@ namespace Grayscale {
         /// <example>
         /// Apply blur:
         /// <code>
-        /// BuiltinEffects.Blur.Apply(sprite);
-        /// BuiltinEffects.Blur.Apply(sprite, 20); // with a radius of 20
+        /// BuiltinEffects.BoxBlur.Apply(sprite);
+        /// BuiltinEffects.BoxBlur.Apply(sprite, 20); // with a radius of 20
         /// </code>
         /// </example>
-        public static readonly Effect Blur = new Effect("com.kd3n1z.grayscale/Blur", new EffectParameter(ParameterType.Int, "_BlurRadius", 10));
+        public static readonly Effect BoxBlur = new Effect("com.kd3n1z.grayscale/BoxBlur", new EffectParameter(ParameterType.Int, "_BlurRadius", 10));
 
         /// <summary>
         /// Applies pixelation to the image.

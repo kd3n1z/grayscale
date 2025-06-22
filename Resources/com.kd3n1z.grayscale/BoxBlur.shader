@@ -1,4 +1,4 @@
-Shader "Hidden/com.kd3n1z.grayscale/Blur"
+Shader "Hidden/com.kd3n1z.grayscale/BoxBlur"
 {
     Properties
     {
