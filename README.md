@@ -5,9 +5,9 @@ integration.
 
 ## Installation
 
--   Open Package Manager
--   Add package from git URL:
-    `https://github.com/kd3n1z/grayscale.git`
+- Open Package Manager
+- Add package from git URL:
+  `https://github.com/kd3n1z/grayscale.git`
 
 ## Built-in Effects
 
@@ -51,6 +51,23 @@ Applies box blur to the image.
 ```csharp
 BuiltinEffects.Blur.Apply(sprite);
 BuiltinEffects.Blur.Apply(sprite, 20); // with a radius of 20
+```
+
+### GaussianBlur
+
+Applies Gaussian blur to the image.
+
+#### Parameters
+
+1. **\_BlurRadius**: Type: `int`, Default: `10`
+2. **\_Sigma**: Type: `float`, Default: `3.0`
+
+#### Example Usage
+
+```csharp
+BuiltinEffects.GaussianBlur.Apply(sprite);
+BuiltinEffects.GaussianBlur.Apply(sprite, 10); // with a radius of 10
+BuiltinEffects.GaussianBlur.Apply(sprite, 10, 4.5f); // with a radius of 10 and sigma 4.5
 ```
 
 ### Pixelate
