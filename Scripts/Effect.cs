@@ -81,7 +81,6 @@ namespace Grayscale {
                         _material.SetInt(parameter.Id, Convert.ToInt32(value));
                         break;
                     case ParameterType.Float:
-                        Debug.Log(value);
                         _material.SetFloat(parameter.Id, Convert.ToSingle(value));
                         break;
                     default:
