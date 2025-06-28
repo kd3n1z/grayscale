@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 
 namespace Grayscale {
     public class Effect {
+        // ReSharper disable InconsistentNaming
 #if UNITY_EDITOR_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS || UNITY_STANDALONE_OSX
         // BGRA8Unorm
         // https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
@@ -17,6 +18,7 @@ namespace Grayscale {
         private const TextureFormat TEXTURE_FORMAT = TextureFormat.RGBA32;
         private const bool TEXTURE_LINEAR = true;
 #endif
+        // ReSharper restore InconsistentNaming
 
         private static readonly bool CopySupported = (SystemInfo.copyTextureSupport & CopyTextureSupport.RTToTexture) != 0;
 
@@ -27,8 +29,7 @@ namespace Grayscale {
         private readonly CacheStorage<Sprite> _spriteCache = new CacheStorage<Sprite>();
 
         public Effect(string shaderResourcePath, params EffectParameter[] effectParameters) : this(Resources.Load<Shader>(shaderResourcePath),
-            effectParameters) {
-        }
+            effectParameters) { }
 
         public Effect(Shader shader, params EffectParameter[] effectParameters) {
             _material = new Material(shader);
@@ -96,8 +97,7 @@ namespace Grayscale {
 
             if (CopySupported) {
                 Graphics.CopyTexture(rt, result);
-            }
-            else {
+            } else {
                 RenderTexture.active = rt;
                 result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
                 result.Apply();
