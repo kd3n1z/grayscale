@@ -7,6 +7,13 @@ Shader "Grayscale/Sprite Gaussian Blur"
 
         _BlurRadius ("Blur Radius", Int) = 5
         _Sigma ("Sigma (Blur Spread)", Float) = 3.0
+        
+        [HideInInspector] _Stencil ("Stencil ID", Float) = 0
+        [HideInInspector] _StencilComp ("Stencil Comparison", Float) = 8
+        [HideInInspector] _StencilOp ("Stencil Operation", Float) = 0
+        [HideInInspector] _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        [HideInInspector] _StencilReadMask ("Stencil Read Mask", Float) = 255
+        [HideInInspector] _ColorMask ("Color Mask", Float) = 15
 
         [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
@@ -28,6 +35,16 @@ Shader "Grayscale/Sprite Gaussian Blur"
         Cull Off
         ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
+
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+        ColorMask [_ColorMask]
 
         Pass
         {

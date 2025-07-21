@@ -5,6 +5,13 @@ Shader "Grayscale/Sprite Negative"
         _MainTex ("Texture", 2D) = "white" {}
         _Color("Tint", Color) = (1, 1,1 , 1)
 
+        [HideInInspector] _Stencil ("Stencil ID", Float) = 0
+        [HideInInspector] _StencilComp ("Stencil Comparison", Float) = 8
+        [HideInInspector] _StencilOp ("Stencil Operation", Float) = 0
+        [HideInInspector] _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        [HideInInspector] _StencilReadMask ("Stencil Read Mask", Float) = 255
+        [HideInInspector] _ColorMask ("Color Mask", Float) = 15
+
         [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _Flip("Flip", Vector) = (1,1,1,1)
         [PerRendererData] _AlphaTex("External Alpha", 2D) = "white" {}
@@ -25,6 +32,16 @@ Shader "Grayscale/Sprite Negative"
         Cull Off
         ZWrite Off
         Blend SrcAlpha OneMinusSrcAlpha
+
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+        ColorMask [_ColorMask]
 
         Pass
         {
